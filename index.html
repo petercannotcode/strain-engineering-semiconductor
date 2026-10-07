@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Explore how tensile and compressive strain affect silicon conduction bands, carrier effective masses and electronic transport.">
+    <title>Strain and Carrier Transport | Silicon Lab</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to simulator</a>
+    <header class="site-header">
+      <div class="container header-inner">
+        <div class="brand"><span class="brand-mark" aria-hidden="true">Si</span><h1>Strain and Carrier Transport</h1></div>
+        <span class="course-label">Semiconductor physics <span class="status">Silicon lab</span></span>
+      </div>
+    </header>
+
+    <main id="main" class="container workspace" tabindex="-1">
+      <div class="lesson-toolbar" aria-label="Learning scenarios">
+        <span class="eyebrow">Explore strain</span>
+        <button type="button" id="tensile-scenario" data-scenario="tensile">① Biaxial tension +0.5%</button>
+        <button type="button" id="compressive-scenario" data-scenario="compressive">② Biaxial compression −0.5%</button>
+        <button type="button" id="uniaxial-scenario" data-scenario="uniaxial">③ Uniaxial tension +0.5%</button>
+        <button type="button" id="compare-toggle" aria-pressed="false">Compare unstrained bands</button>
+      </div>
+      <section class="controls surface" aria-labelledby="strain-title">
+        <div class="controls-heading"><h2 id="strain-title">Strain Control</h2><p id="control-note">Lattice → band splitting → transport | Approximate ν = 0.28</p></div>
+        <form id="strain-form" aria-describedby="control-note">
+          <div class="strain-field">
+            <label for="strain-magnitude">Applied strain <output id="magnitude-output" for="strain-magnitude">0.0%</output></label>
+            <div class="slider-row"><input id="strain-magnitude" name="magnitude" type="range" min="-2" max="2" step="0.1" value="0"></div>
+            <div class="range-labels"><span>−2.0% Compressive</span><span>+2.0% Tensile</span></div>
+          </div>
+          <fieldset class="mode-field"><legend>Strain mode</legend>
+            <label><input type="radio" name="mode" value="biaxial" checked> Biaxial</label>
+            <label><input type="radio" name="mode" value="uniaxial"> Uniaxial</label>
+          </fieldset>
+          <div class="tensor" role="group" aria-label="Diagonal strain tensor, in percent">
+            <div><span>ε<sub>xx</sub></span><output id="epsilon-xx">0.000%</output></div>
+            <div><span>ε<sub>yy</sub></span><output id="epsilon-yy">0.000%</output></div>
+            <div><span>ε<sub>zz</sub></span><output id="epsilon-zz">0.000%</output></div>
+          </div>
+          <button type="reset">Reset</button>
+        </form>
+        <div class="model-settings">
+          <label for="temperature">Temperature <input id="temperature" type="number" min="100" max="600" step="10" value="300"> K</label>
+          <label for="transport-axis">Transport / band-cut direction <select id="transport-axis"><option value="x">x · [100]</option><option value="y">y · [010]</option><option value="z">z · [001]</option></select></label>
+          <span>Bulk electrons · Nondegenerate statistics · Constant scattering time</span>
+        </div>
+        <div class="strain-summary"><span id="strain-kind">Unstrained</span><span id="strain-mode">Biaxial</span><span id="model-description">In-plane x / y strain; free out-of-plane response. Shear = 0.</span></div>
+      </section>
+
+      <div class="dashboard" role="group" aria-label="Physics dashboard">
+        <section class="panel surface" id="real-space-lattice" aria-labelledby="lattice-title">
+          <div class="panel-heading"><h2 id="lattice-title">01 Real-Space Lattice</h2><span class="panel-tag">How do atoms move?</span></div>
+          <div class="viewport lattice-viewport">
+            <svg id="lattice-svg" viewBox="0 0 440 240" role="img" aria-labelledby="lattice-svg-title lattice-svg-description">
+              <title id="lattice-svg-title">Silicon diamond-cubic unit cell</title>
+              <desc id="lattice-svg-description">Unstrained lattice. Dashed outline is the reference cell. Deformation is visually exaggerated by 12 times.</desc>
+              <g id="reference-cell" class="reference-cell"></g>
+              <g id="lattice-cell" class="lattice-cell"></g>
+              <g id="lattice-bonds" class="lattice-bonds"></g>
+              <g id="lattice-atoms"></g>
+              <g id="lattice-axes" class="lattice-axes"></g>
+            </svg>
+            <noscript>Enable JavaScript to view and deform the lattice.</noscript>
+          </div>
+          <p class="panel-caption">Diamond-cubic cell · Dashed: unstrained · Deformation ×12 for display only</p>
+        </section>
+        <section class="panel surface" id="reciprocal-space" aria-labelledby="reciprocal-title">
+          <div class="panel-heading"><h2 id="reciprocal-title">02 Reciprocal Space / Silicon Valleys</h2><span class="panel-tag">Which valleys fill?</span></div>
+          <div class="viewport chart-viewport"><svg id="valley-svg" viewBox="0 0 440 200" role="img" aria-labelledby="valley-title valley-description"><title id="valley-title">Six silicon conduction valleys</title><desc id="valley-description"></desc><g id="valley-drawing"></g></svg></div>
+          <div class="valley-readouts" id="valley-readouts"></div>
+          <p class="panel-caption">± pair populations · k in unstrained 2π/a₀ units · Schematic ellipsoids</p>
+        </section>
+        <section class="panel surface" id="band-structure" aria-labelledby="band-title">
+          <div class="panel-heading"><h2 id="band-title">03 Conduction Bands</h2><span class="panel-tag">How do bands split?</span></div>
+          <div class="viewport chart-viewport"><svg id="band-svg" viewBox="0 0 440 200" role="img" aria-labelledby="band-svg-title band-description"><title id="band-svg-title">Local conduction-band dispersion</title><desc id="band-description"></desc><g id="band-drawing"></g></svg></div>
+          <div class="chart-legend"><span class="valley-x">±x</span><span class="valley-y">±y</span><span class="valley-z">±z</span><span id="splitting-readout"></span></div>
+          <p class="panel-caption">Local cuts about each valley minimum; common energy shift removed.</p>
+        </section>
+        <section class="panel surface" id="effective-mass" aria-labelledby="mass-title">
+          <div class="panel-heading"><h2 id="mass-title">04 Effective Mass and Transport</h2><span class="panel-tag">Which direction conducts better?</span></div>
+          <div class="transport-content">
+            <div class="transport-metrics"><div><span>Conductivity mass</span><strong id="conductivity-mass"></strong><small>Weighted by valley populations</small></div><div><span>Relative mobility μ / μ₀</span><strong id="mobility-ratio"></strong><small>Constant τ; same temperature</small></div></div>
+            <div id="transport-bars" class="transport-bars"></div>
+            <p id="transport-explanation"></p>
+          </div>
+          <p class="panel-caption">Fixed valley masses: mₗ = 0.903 m₀, mₜ = 0.191 m₀; scattering changes omitted.</p>
+        </section>
+      </div>
+
+      <aside class="insight-strip surface" aria-label="Live physics explanation"><span class="insight-icon" aria-hidden="true">↗</span><div><strong id="insight-title">Start with symmetric silicon</strong><p id="insight-text"></p></div><button type="button" id="challenge-toggle" aria-expanded="false" aria-controls="challenge-content">Think about it</button><p id="challenge-content" hidden>Apply biaxial tension, then compare x and z transport. Why do the same valley populations give different mobilities? Hint: a valley has a heavier mass along its own axis.</p></aside>
+      <section class="cmos surface" id="cmos-application" aria-labelledby="cmos-title">
+        <div class="device-copy"><h2 id="cmos-title">Strain in Semiconductor Devices</h2>
+          <p class="device-result" id="device-result"></p>
+          <p>Long-channel nMOS illustration: fixed gate overdrive, geometry and capacitance. Only the bulk constant-τ mobility ratio changes.</p>
+          <p><strong>pMOS:</strong> Hole transport requires strain-dependent valence bands. This electron model does not predict pMOS performance.</p>
+        </div>
+        <div class="device-chart"><svg id="device-svg" viewBox="0 0 440 170" role="img" aria-labelledby="device-title device-description"><title id="device-title">Normalized nMOS output characteristic</title><desc id="device-description"></desc><g id="device-drawing"></g></svg><p class="panel-caption">Solid: current strain · Dashed: unstrained · Normalized illustration</p></div>
+      </section>
+      <details class="model-notes surface">
+        <summary>Model equations, assumptions &amp; sources</summary>
+        <div class="notes-grid">
+          <div><h3>Strain and valleys</h3><p>x, y and z align with [100], [010] and [001]. Linear isotropic elasticity uses ν = 0.28. Biaxial: εzz = −2ν/(1−ν) ε∥; uniaxial: εyy = εzz = −ν εxx. Relative valley energy: Eᵢ = Ξu(εii − tr(ε)/3), with Ξu = 9.16 eV. A common hydrostatic shift is excluded; the mean valley edge is the energy zero. ± valleys stay degenerate.</p><p>Reciprocal vectors transform as F⁻ᵀ, where F = I + ε. Valley centers are held at 0.85 of the corresponding reduced reciprocal axis; internal strain-induced shifts are omitted. Only the real-space drawing exaggerates deformation ×12.</p></div>
+          <div><h3>Populations and transport</h3><p>Equal pair degeneracy and fixed density-of-states masses give Pᵢ ∝ exp[−(Eᵢ−Emin)/(kBT)], normalized over three pairs. mcond,j⁻¹ = Σᵢ Pᵢ/mᵢⱼ, using mₗ along a valley axis and mₜ across it. μ/μ₀ = mcond,0/mcond,j assumes the same constant τ. Temperature changes populations only.</p><p>Local bands use E(q) = Eᵢ + ℏ²q²/(2mᵢⱼ). These are near-minimum cuts, not a full Brillouin-zone band calculation. Fixed curvature omits strain-dependent mass changes. The displayed conductivity mass changes through valley repopulation, not a fitted change to individual valley masses. Effective mass is related to curvature by 1/m* = (1/ℏ²) d²E/dk².</p></div>
+          <div><h3>Device interpretation</h3><p>For v = VDS/Vov, I/I₀,sat = (μ/μ₀)(2v−v²) for 0 ≤ v ≤ 1 and μ/μ₀ above saturation. This is the ideal long-channel square-law illustration, not a calibrated MOSFET prediction. Quantum confinement, threshold shifts, scattering changes, high-field effects and strain relaxation are omitted. Linear models are illustrative at large strain.</p><p>Sources: <a href="https://www.iue.tuwien.ac.at/phd/dhar/node19.html">TU Wien: strain and deformation potentials</a>; <a href="https://link.aps.org/accepted/10.1103/PhysRevB.83.195318">Wang et al.: deformation-potential parameters</a>; <a href="https://iue.tuwien.ac.at/phd/smirnov/node45.html">TU Wien: band masses</a>; <a href="https://www.iue.tuwien.ac.at/phd/dhar/node23.html">TU Wien: valley transport</a>.</p></div>
+        </div>
+      </details>
+      <noscript><p class="surface no-script">Enable JavaScript to use the simulator.</p></noscript>
+    </main>
+  </body>
+</html>
+
